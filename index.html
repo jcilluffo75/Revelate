@@ -49,11 +49,12 @@
 
   <script>
     const msalConfig = {
-      auth: {
-        clientId: "81f7ad09-d3aa-40be-9a2f-112a883f4a75",
-        redirectUri: window.location.href
-      }
-    };
+  auth: {
+    clientId: "81f7ad09-d3aa-40be-9a2f-112a883f4a75",
+    authority: "https://login.microsoftonline.com/7456b239-03b8-4211-b957-a80fd8186a8d",
+    redirectUri: window.location.href
+    }
+   };
 
     const msalInstance = new msal.PublicClientApplication(msalConfig);
 
