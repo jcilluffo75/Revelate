@@ -67,24 +67,24 @@
       "vmnawa02": "52.234.126.135"
     };
 
-    async function signIn() {
-      try {
-        const loginResponse = await msalInstance.loginPopup({
-          scopes: ["User.Read", "Device.Read.All"]
-        });
+   async function signIn() {
+  try {
+    const loginResponse = await msalInstance.loginPopup({
+      scopes: ["User.Read", "Device.Read.All"]
+    });
 
-        const accessToken = (await msalInstance.acquireTokenSilent({
-          scopes: ["User.Read", "Device.Read.All"],
-          account: loginResponse.account
-        })).accessToken;
+    const accessToken = (await msalInstance.acquireTokenSilent({
+      scopes: ["User.Read", "Device.Read.All"],
+      account: loginResponse.account
+    })).accessToken;
 
-        document.getElementById("user-greeting").innerText = `Welcome, ${loginResponse.account.name}`;
-
-        fetchDevices(accessToken);
-      } catch (err) {
-        console.error("Authentication error:", err);
-      }
-    }
+    document.getElementById("user-greeting").innerText = `Welcome, ${loginResponse.account.name}`;
+    fetchDevices(accessToken);
+  } catch (err) {
+    console.error("Authentication error:", err);
+    document.getElementById("user-greeting").innerText = `Login failed: ${err.message}`;
+  }
+}
 
     async function fetchDevices(token) {
       const headers = { Authorization: `Bearer ${token}` };
