@@ -37,14 +37,20 @@
 </head>
 <body>
   <header>
-    <img class="logo" src="https://jcilluffo75.github.io/Revelate/logo.png" alt="Revelate Logo">
+    <img class="logo" src="./logo.png" alt="Revelate Logo">
     <h1>Revelate Staff Portal</h1>
   </header>
   <div class="content">
-    <p id="user-greeting">Authenticating...</p>
+    <p id="user-greeting">Welcome to the Revelate Staff Portal.</p>
+    <button id="signin-btn">Sign In</button>
     <h3>Your Devices:</h3>
     <ul id="devices"></ul>
-    <p><a href="https://myaccount.microsoft.com" target="_blank">Reset your password / manage MFA</a></p>
+    <br>
+<h4>Resources & Information</h4>
+    <p>Reset Password: <a href="https://myaccount.microsoft.com" target="_blank">Reset your password / manage MFA</a></p>
+    <p>Mac Remote User Guide: <a href="https://learn.microsoft.com/en-us/windows-app/" target="_blank">Microsoft Remote Desktop User Guide</a></p>
+    <p>MacOs users: <a href="https://apps.apple.com/us/app/microsoft-remote-desktop/id1295203466?mt=12" target="_blank">Install Microsoft Remote Desktop</a></p>
+    <p>Mac iPad iOS users: <a href="https://apps.apple.com/us/app/windows-app-mobile/id714464092" target="_blank">Install Microsoft Remote Desktop</a></p>
   </div>
 
   <script>
@@ -67,24 +73,35 @@
       "vmnawa02": "52.234.126.135"
     };
 
-   async function signIn() {
-  try {
-    const loginResponse = await msalInstance.loginPopup({
-      scopes: ["User.Read", "Device.Read.All"]
-    });
+    async function signIn() {
+      try {
+        console.log("Starting login...");
+        const loginResponse = await msalInstance.loginPopup({
+          scopes: ["User.Read", "Device.Read.All"]
+        });
 
-    const accessToken = (await msalInstance.acquireTokenSilent({
-      scopes: ["User.Read", "Device.Read.All"],
-      account: loginResponse.account
-    })).accessToken;
+        console.log("Login response:", loginResponse);
 
-    document.getElementById("user-greeting").innerText = `Welcome, ${loginResponse.account.name}`;
-    fetchDevices(accessToken);
-  } catch (err) {
-    console.error("Authentication error:", err);
-    document.getElementById("user-greeting").innerText = `Login failed: ${err.message}`;
-  }
-}
+        const account = loginResponse.account;
+        const name = account?.name || account?.username || "User";
+        document.getElementById("user-greeting").innerText = `Welcome, ${name}`;
+
+        // Optional: Acquire token silently and call downstream API
+        const tokenResponse = await msalInstance.acquireTokenSilent({
+          scopes: ["User.Read", "Device.Read.All"],
+          account
+        });
+        // Call your device API here if needed:
+        // fetchDevices(tokenResponse.accessToken);
+        fetchDevices(tokenResponse.accessToken);
+
+      } catch (err) {
+        console.error("Login failed:", err);
+        document.getElementById("user-greeting").innerText = `Login failed: ${err.message}`;
+      }
+    }
+
+    document.getElementById("signin-btn").onclick = signIn;
 
     async function fetchDevices(token) {
       const headers = { Authorization: `Bearer ${token}` };
@@ -97,20 +114,29 @@
         return;
       }
 
-      data.value.forEach(device => {
-        const vmName = device.displayName;
-        const publicIp = ipMap[vmName] || "IP not mapped";
+     const mappedDevices = data.value.filter(device => {
+     const vmName = device.displayName;
+     return ipMap[vmName]; // Only include if there's a matching IP
+     });
 
-        const item = document.createElement("li");
-        item.innerHTML = `
-          <strong>${vmName}</strong> – ${publicIp}
-          [<a href="rdp_files/${vmName}.rdp" download>Connect via RDP</a>]
-        `;
-        container.appendChild(item);
-      });
+     if (mappedDevices.length === 0) {
+     container.innerHTML = "<p>No mapped devices found.</p>";
+     return;
+     }
+
+     mappedDevices.forEach(device => {
+     const vmName = device.displayName;
+     const publicIp = ipMap[vmName];
+
+     const item = document.createElement("li");
+     item.innerHTML = `
+     <strong>${vmName}</strong> – ${publicIp}
+     [<a href="rdp_files/${encodeURIComponent(vmName)}.rdp" download>Connect via RDP</a>]
+     `;
+     container.appendChild(item);
+     });
     }
 
-    window.onload = signIn;
   </script>
 </body>
 </html>
