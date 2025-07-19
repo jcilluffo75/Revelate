@@ -72,9 +72,7 @@
       "vmnany01": "172.191.2.106",
       "vmnany02": "172.178.123.82",
       "vmnaca01": "40.112.145.245",
-      "vmnaca02": "20.253.231.69",
-      "vmnawa01": "13.87.202.123",
-      "vmnawa02": "52.234.126.135"
+      "vmnaca02": "20.253.231.69"
     };
 
     async function signIn() {
@@ -118,27 +116,30 @@
         return;
       }
 
-     const mappedDevices = data.value.filter(device => {
-     const vmName = device.displayName;
-     return ipMap[vmName]; // Only include if there's a matching IP
-     });
+    const mappedDevices = data.value.filter(device => {
+    const vmName = device.displayName?.trim().toLowerCase();  // normalize name
+    if (!ipMap.hasOwnProperty(vmName)) {
+    console.warn(`Device "${device.displayName}" not mapped to any IP.`);
+    }
+      return ipMap.hasOwnProperty(vmName);
+    });
 
-     if (mappedDevices.length === 0) {
-     container.innerHTML = "<p>No mapped devices found.</p>";
+    if (mappedDevices.length === 0) {
+    container.innerHTML = "<p>No mapped devices found.</p>";
      return;
-     }
+    }
 
-     mappedDevices.forEach(device => {
-     const vmName = device.displayName;
-     const publicIp = ipMap[vmName];
+    mappedDevices.forEach(device => {
+    const vmName = device.displayName?.trim().toLowerCase();
+    const publicIp = ipMap[vmName];
 
-     const item = document.createElement("li");
-     item.innerHTML = `
-     <strong>${vmName}</strong> – ${publicIp}
-     [<a href="rdp_files/${encodeURIComponent(vmName)}.rdp" download>Connect via RDP</a>]
-     `;
-     container.appendChild(item);
-     });
+    const item = document.createElement("li");
+    item.innerHTML = `
+    <strong>${device.displayName}</strong> – ${publicIp}
+    [<a href="rdp_files/${encodeURIComponent(device.displayName)}.rdp" download>Connect via RDP</a>]
+    `;
+    container.appendChild(item);
+    });
     }
 
   </script>
