@@ -136,7 +136,7 @@
     const item = document.createElement("li");
     item.innerHTML = `
     <strong>${device.displayName}</strong> – ${publicIp}
-    [<a href="rdp_files/${encodeURIComponent(device.displayName)}.rdp" download>Connect via RDP</a>]
+    [<a href="rdp_files/${encodeURIComponent(device.displayName.trim().toLowerCase())}.rdp" download>Connect via RDP</a>]
     `;
     container.appendChild(item);
     });
